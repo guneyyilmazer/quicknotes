@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { api } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,16 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-
-type Note = {
-  id: number;
-  user_id: number;
-  title: string;
-  content: string;
-  tags: string[];
-  created_at: string;
-  updated_at: string;
-};
+import { authLogout, createNoteApi, deleteNoteById, listNotes, searchNotesByTags, type Note } from '@/lib/api';
 
 export default function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -31,8 +21,8 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.get<Note[]>('/notes');
-      setNotes(res.data);
+      const data = await listNotes();
+      setNotes(data);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Failed to load');
     } finally {
@@ -50,9 +40,9 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
     setError(null);
     try {
       const t = tags.split(',').map((t) => t.trim()).filter(Boolean);
-      await api.post('/notes', { title, content, tags: t });
-      setTitle(''); 
-      setContent(''); 
+      await createNoteApi({ title, content, tags: t });
+      setTitle('');
+      setContent('');
       setTags('');
       await loadAll();
     } catch (e: any) {
@@ -64,21 +54,21 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   async function removeNote(id: number) {
     try {
-      await api.delete(`/notes/${id}`);
+      await deleteNoteById(id);
       await loadAll();
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Delete failed');
     }
   }
 
-  async function searchByTags() {
-    if (!filter) { 
-      await loadAll(); 
-      return; 
+  async function doSearchByTags() {
+    if (!filter) {
+      await loadAll();
+      return;
     }
     try {
-      const res = await api.get<Note[]>(`/notes/search/by-tags`, { params: { tags: filter } });
-      setNotes(res.data);
+      const data = await searchNotesByTags(filter);
+      setNotes(data);
     } catch (e: any) {
       setError(e?.response?.data?.error || 'Search failed');
     }
@@ -90,7 +80,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">QuickNotes</h1>
-          <Button variant="outline" onClick={onLogout}>
+          <Button variant="outline" onClick={() => { authLogout(); onLogout(); }}>
             Logout
           </Button>
         </div>
@@ -109,7 +99,7 @@ export default function Dashboard({ onLogout }: { onLogout: () => void }) {
                 onChange={(e) => setFilter(e.target.value)}
                 className="flex-1"
               />
-              <Button onClick={searchByTags}>Search</Button>
+              <Button onClick={doSearchByTags}>Search</Button>
               <Button variant="outline" onClick={loadAll}>Reset</Button>
             </div>
           </CardContent>

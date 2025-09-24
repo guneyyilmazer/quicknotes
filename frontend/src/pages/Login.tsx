@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { api, setAuthToken } from '../lib/api';
-import { saveToken } from '../lib/auth';
+import { authLogin, authRegister } from '../lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,11 +21,11 @@ export default function Login({ onLogin }: { onLogin: () => void }) {
     setError(null);
 
     try {
-      const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const res = await api.post(endpoint, { email, password });
-      const token = res.data.token as string;
-      saveToken(token);
-      setAuthToken(token);
+      if (isLogin) {
+        await authLogin(email, password);
+      } else {
+        await authRegister(email, password);
+      }
       onLogin();
     } catch (err: any) {
       setError(err?.response?.data?.error || `${isLogin ? 'Login' : 'Registration'} failed`);

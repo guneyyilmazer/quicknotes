@@ -27,36 +27,65 @@ Frontend (React) → NGINX LB → API Instance 1/2 → PostgreSQL/Redis
 - Docker & Docker Compose
 - Make (optional, for convenience commands)
 
-### Setup
-1. **Clone and setup:**
+### Setup (Windows - PowerShell)
+1. Clone and enter the project:
+   ```powershell
+   git clone <repository>
+   cd quicknotes
+   ```
+2. Copy .env if missing:
+   ```powershell
+   if (!(Test-Path .env) -and (Test-Path .env.example)) { Copy-Item .env.example .env }
+   ```
+3. Start development (hot reload):
+   ```powershell
+   docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
+   ```
+   - Start in background:
+     ```powershell
+     docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d
+     ```
+4. Open:
+   - Frontend: http://localhost:3000
+   - API (Load Balanced): http://localhost:8080
+
+### Setup (macOS/Linux)
+1. Clone and setup:
    ```bash
    git clone <repository>
    cd quicknotes
    chmod +x setup.sh
    ./setup.sh
    ```
-
-2. **Start development environment:**
+2. Start development environment:
    ```bash
    make dev
    ```
-
-3. **Access the application:**
+3. Access the application:
    - Frontend: http://localhost:3000
    - API (Load Balanced): http://localhost:8080
    - Database: localhost:5432
    - Redis: localhost:6379
 
 ### Alternative Setup (without Make)
+- macOS/Linux:
 ```bash
 # Copy environment file
 cp .env.example .env
 
 # Start development
-docker-compose -f docker-compose.yml -f docker-compose.override.yml up --build
+docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
 
 # Start production
-docker-compose up --build -d
+docker compose up --build -d
+```
+- Windows (PowerShell):
+```powershell
+if (!(Test-Path .env) -and (Test-Path .env.example)) { Copy-Item .env.example .env }
+
+docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
+# Or production
+docker compose up --build -d
 ```
 
 ## 📋 Available Commands
@@ -81,7 +110,7 @@ make db-reset       # Reset database
 | `POSTGRES_PASSWORD` | Database password | `quicknotes_pass` |
 | `JWT_SECRET` | JWT signing secret | `dev-jwt-secret-key-change-in-production` |
 | `NODE_ENV` | Node environment | `development` |
-| `REACT_APP_API_URL` | Frontend API URL | `http://localhost:8080` |
+| `VITE_API_URL` | Frontend API base (optional). If unset, frontend uses relative `/api` | — |
 
 ## 📡 API Endpoints
 
@@ -89,7 +118,6 @@ make db-reset       # Reset database
 ```http
 POST /api/auth/register
 POST /api/auth/login
-POST /api/auth/logout
 GET  /api/auth/me
 ```
 
@@ -100,7 +128,7 @@ POST   /api/notes              # Create new note
 GET    /api/notes/:id          # Get specific note
 PUT    /api/notes/:id          # Update note
 DELETE /api/notes/:id          # Delete note
-GET    /api/notes/search       # Search notes by tags
+GET    /api/notes/search/by-tags  # Search notes by tags
 ```
 
 ### System
@@ -137,7 +165,7 @@ Content-Type: application/json
 
 #### Search Notes
 ```http
-GET /api/notes/search?tags=personal,work
+GET /api/notes/search/by-tags?tags=personal,work
 Authorization: Bearer <jwt_token>
 ```
 
@@ -239,9 +267,9 @@ Redis is used for caching search results:
 
 ### Frontend
 - **Framework**: React.js
-- **Build Tool**: Create React App
+- **Build Tool**: Vite
 - **HTTP Client**: Axios
-- **Styling**: CSS Modules / Styled Components
+- **Styling**: Tailwind CSS + shadcn/ui
 
 ### Infrastructure
 - **Containerization**: Docker
@@ -254,22 +282,21 @@ Redis is used for caching search results:
 
 ### Common Issues
 
-1. **Services won't start:**
-   ```bash
-   make clean  # Clean up Docker resources
-   make prod   # Restart
-   ```
+```bash
+make clean  # Clean up Docker resources
+make prod   # Restart
+```
 
 2. **Database connection issues:**
-   ```bash
-   make db-reset  # Reset database
-   ```
+```bash
+make db-reset  # Reset database
+```
 
 3. **Check service health:**
-   ```bash
-   make health
-   make logs
-   ```
+```bash
+make health
+make logs
+```
 
 ### Debug Mode
 ```bash
