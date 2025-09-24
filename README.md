@@ -27,28 +27,6 @@ Frontend (React) → NGINX LB → API Instance 1/2 → PostgreSQL/Redis
 - Docker & Docker Compose
 - Make (optional, for convenience commands)
 
-### Setup (Windows - PowerShell)
-1. Clone and enter the project:
-   ```powershell
-   git clone <repository>
-   cd quicknotes
-   ```
-2. Copy .env if missing:
-   ```powershell
-   if (!(Test-Path .env) -and (Test-Path .env.example)) { Copy-Item .env.example .env }
-   ```
-3. Start development (hot reload):
-   ```powershell
-   docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
-   ```
-   - Start in background:
-     ```powershell
-     docker compose -f docker-compose.yml -f docker-compose.override.yml up --build -d
-     ```
-4. Open:
-   - Frontend: http://localhost:3000
-   - API (Load Balanced): http://localhost:8080
-
 ### Setup (macOS/Linux)
 1. Clone and setup:
    ```bash
@@ -77,14 +55,6 @@ cp .env.example .env
 docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
 
 # Start production
-docker compose up --build -d
-```
-- Windows (PowerShell):
-```powershell
-if (!(Test-Path .env) -and (Test-Path .env.example)) { Copy-Item .env.example .env }
-
-docker compose -f docker-compose.yml -f docker-compose.override.yml up --build
-# Or production
 docker compose up --build -d
 ```
 
